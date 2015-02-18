@@ -1,19 +1,18 @@
 * cl-w2ui
 
 ** Installation
-git clone under your local-projects directory of Quicklisp.
 #+BEGIN_SRC sh
   cd ~/quicklisp/local-projects/
-  git clone ...  
+  git clone https://github.com/masatoi/cl-w2ui.git
 #+END_SRC
-then, start lisp and
 #+BEGIN_SRC lisp
   (ql:quickload :cl-w2ui)
 #+END_SRC
 
 ** Run Examples
-Start server.
 #+BEGIN_SRC lisp
   (cl-w2ui:start)
 #+END_SRC
 then, access to http://localhost:5000
+
+See example.lisp https://github.com/masatoi/cl-w2ui/blob/master/src/example.lisp
