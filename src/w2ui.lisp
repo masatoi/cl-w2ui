@@ -4,9 +4,9 @@
 
 (defpackage :cl-w2ui.w2ui
   (:nicknames :w2ui)
-  (:use :cl :cl-w2ui.utils :cl-who)
+  (:use :cl :cl-w2ui.utils)
   (:import-from :alexandria :flatten)
-  (:import-from :parenscript :ps :chain :@ :create :lisp)
+  (:import-from :parenscript :ps :chain :create :lisp)
   (:export :ps-expression-of-w2ui-object
 	   :define-w2ui-objects
 	   :render-w2ui-objects
@@ -605,7 +605,7 @@
 	       (element-id-list (element-id-list-of-sub-items-which-have-on-click toolbar))
 	       (cond-clause-list
 		(mapcar (lambda (funcall-lambda-form element-id)
-			  `((= (@ event target) ,element-id)  ,funcall-lambda-form))
+			  `((= (chain event target) ,element-id)  ,funcall-lambda-form))
 			funcall-lambda-form-list element-id-list)))
 	  `(lambda (event) (cond ,@cond-clause-list)))))))
 
@@ -617,7 +617,7 @@
 	      items ,(cons 'list (mapcar #'toolbar-item-spec (toolbar-items toolbar)))))
      ;; define event listener for sub-items
      ,@(if (make-event-listener-from-toolbar-sub-items toolbar)
-	 `(((@ (aref w2ui ,(toolbar-element-id toolbar)) on) "click"
+	 `(((chain (aref w2ui ,(toolbar-element-id toolbar)) on) "click"
 	    ,(make-event-listener-from-toolbar-sub-items toolbar))))))
 
 ;;; Form

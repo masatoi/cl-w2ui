@@ -5,12 +5,12 @@
 (defpackage cl-w2ui.example
   (:nicknames :example)
   (:use :cl :cl-w2ui.utils :cl-w2ui.app :cl-w2ui.w2ui :cl-who)
-  (:import-from :parenscript :ps :chain :@ :create :lisp))
+  (:import-from :parenscript :ps :chain :create :lisp))
 
 (in-package :cl-w2ui.example)
 
 (defparameter layout
-  (layout "layout"
+  (layout "my-layout"
 	  (list (panel 'main :content "<h2>Main panel</h2>")
 		(panel 'top :size 100 :content "<h2>Top panel</h2>")
 		(panel 'left :size 200 :resizable-p t
@@ -20,7 +20,7 @@
 		(panel 'bottom :size 100 :resizable-p t :content "<h2>Bottom panel</h2>" :hidden-p t))))
 
 (defparameter tabs
-  (tabs "tabs"
+  (tabs "my-tabs"
 	(list (tab "tab1" "Tab1" :on-click `(lambda () ((chain ($ "#tab-body") html) ,(html (:p "This is Tab1.")))))
 	      (tab "tab2" "Tab2" :on-click `(lambda (event)					      
 					      (console.log event)
@@ -28,7 +28,7 @@
 	      (tab "tab3" "Tab3" :on-click (tab-set "tab-body" (html (:p "This is Tab3.")))))))
 
 (defparameter grid
-  (grid "grid"
+  (grid "my-grid"
 	(list (column "fname" "First name"    :size "30%")
 	      (column "lname" "Last name"     :size "30%")
 	      (column "email" "Email Address" :size "40%"))
@@ -38,7 +38,7 @@
 
 ;; type: button, check, radio, drop, menu, break, spacer, html
 (defparameter toolbar
-  (toolbar "toolbar"
+  (toolbar "my-toolbar"
 	   (list (item "item1"
 		       :text "item1"
 		       :icon "fa fa-exclamation-circle"
@@ -50,7 +50,7 @@
 		 (item "radio1" :text "radio1" :type "radio" :icon "fa fa-check")
 		 (item "radio2" :text "radio2" :type "radio" :icon "fa fa-flag")
 		 (item "break"  :type "break")
-		 (item "html" :html "<strong>html</strong>" :type "html")
+		 (item "html" :html (html (:strong "HTML")) :type "html")
 		 (item "spacer" :type "spacer") ; insert space
 		 (item "break"  :type "break")
 		 (item "drop" :text "drop" :type "drop" :html "<p>This is drop</p>")
@@ -61,7 +61,7 @@
 						  :on-click '(lambda (event) (console.log event))))))))
 
 (defparameter form
-  (form "form"
+  (form "my-form"
 	;; fields
 	(list (field "First-name" "text" :required t)
 	      (field "Last-name" "text"  :required t)
@@ -85,7 +85,7 @@
 
 (defparameter sidebar
   (sidebar
-   "sidebar"
+   "my-sidebar"
    (list (node "layout-node" "Layout"   :icon "fa fa-th-large"        :on-click (layout-load layout 'main "/layout-operations"))
 	 (node "tabs-node"    "Tabs"    :icon "fa fa-list-alt"        :on-click (layout-load layout 'main "/tabs"))
 	 (node "grid-node"    "Grid"    :icon "fa fa-table"           :on-click (layout-load layout 'main "/grid"))
@@ -103,7 +103,7 @@
 	      :css ("/css/w2ui-1.4.2.css" "/css/font-awesome.css" "/css/example.css")
 	      :script ("/js/jquery-2.1.1.js" "/js/w2ui-1.4.2.js"))
     (html
-      (:div :id "layout" :style "width: 100%; height: 100%;")
+      (:div :id "my-layout" :style "width: 100%; height: 100%;")
       (:script
        (str
 	(cat
@@ -132,27 +132,27 @@
   (declare (ignore params))
   (html
     (:h2 "Tabs sample")
-    (:div :id "tabs" :style "width: 100%;")
+    (:div :id "my-tabs" :style "width: 100%;")
     (:div :id "tab-body" :style "width: 100%;")
     (:script (str (render-w2ui-objects tabs)))))
 
 (defroute "/grid" (params)
   (declare (ignore params))
   (html (:h2 "Grid sample")
-	(:div :id "grid" :style "width: 100%; height: 400px;")
+	(:div :id "my-grid" :style "width: 100%; height: 400px;")
 	(:script (str (render-w2ui-objects grid)))))
 
 (defroute "/toolbar" (params)
   (declare (ignore params))
   (html (:h2 "Toolbar sample")
-	(:div :id "toolbar" :style "width: 100%;")
+	(:div :id "my-toolbar" :style "width: 100%;")
 	(:script (str (render-w2ui-objects toolbar)))))
 
 (defroute "/form" (params)
   (declare (ignore params))
   (html
     (:h2 "Form sample")
-    (:div :id "form" :style "width: 100%;")
+    (:div :id "my-form" :style "width: 100%;")
     (:script (str (render-w2ui-objects form)))))
 
 ;; return JSON object
@@ -166,7 +166,3 @@
   (declare (ignore params))
   (html (:h2 "Popup sample")
 	(str (render-button "Display popup" :on-click (popup-open popup)))))
-
-(defroute "/tabbody" (params)
-  (declare (ignore params))
-  (html (:h2 "This is tab body.")))
