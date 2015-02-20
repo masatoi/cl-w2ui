@@ -6,12 +6,10 @@
   (:nicknames :cl-w2ui :app)
   (:use :cl :anaphora
 	:clack :clack.request :clack.builder
-	:ningle
 	:clack.middleware.static
 	:clack.middleware.session
 	:clack.middleware.accesslog)
-  (:shadowing-import-from :ningle :make-request)
-  (:shadowing-import-from :clack.handler :stop)
+  (:shadow :stop)
   (:export :start
 	   :stop
 	   :defroute
@@ -34,19 +32,20 @@
 		 path))
        :root static-directory)))
 
-(defparameter *app* (make-instance '<app>))
+(defparameter *app* (make-instance 'ningle:<app>))
 
 ;; start/stop function (contstruct clack application)
-(defun start ()
+(defun start (&key (port 5000) (server :hunchentoot))
   (setf *handler*
 	(clackup
 	 (wrap
 	  *static-middleware*
 	  (wrap
 	   (make-instance '<clack-middleware-session>)
-		 *app*)))))
+		 *app*))
+	 :port port :server server)))
 
-(defun stop () (clack:stop))
+(defun stop () (clack.handler:stop *handler*))
 
 (defmacro defroute (name (params &rest route-args) &body body)
   "Example:
@@ -58,7 +57,7 @@
  		 (assoc \"password\" params :test #'string=))
      \"Authorized!\"
      \"Failed...Try again.\"))"
-  `(setf (route *app* ,name ,@route-args)
+  `(setf (ningle:route *app* ,name ,@route-args)
 	 (lambda (,params) ,@body)))
 
 ;;; session operators
