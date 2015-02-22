@@ -252,7 +252,7 @@
 (defstruct sidebar
   (:element-id nil :type string)
   (:nodes nil :type list)
-  :keyboard        ; Indicates if sidebar should listen to keyboard.
+  :enable-keyboard-p        ; Indicates if sidebar should listen to keyboard.
   :menu            ; Array, default = []. Context menu for the sidebar.
   ;; Events  
   :on-click        ; Called when user clicks the node.
@@ -268,10 +268,10 @@
   :on-resize       ; Called when object is resized.
   )
 
-(defun sidebar (element-id nodes &key keyboard menu
+(defun sidebar (element-id nodes &key enable-keyboard-p menu
 				   on-click on-collapse on-context-menu on-dbl-click on-expand on-keydown
 				   on-menu-click on-destroy on-refresh on-render on-resize)
-  (make-sidebar :element-id element-id :nodes nodes :keyboard keyboard :menu menu
+  (make-sidebar :element-id element-id :nodes nodes :enable-keyboard-p enable-keyboard-p :menu menu
 		:on-click on-click :on-collapse on-collapse :on-context-menu on-context-menu :on-dbl-click on-dbl-click
 		:on-expand on-expand :on-keydown on-keydown :on-menu-click on-menu-click :on-destroy on-destroy :on-refresh on-refresh
 		:on-render on-render :on-resize on-resize))
@@ -281,7 +281,7 @@
     (create name  ,(sidebar-element-id sidebar)
 	    img   nil
 	    nodes ,(cons 'list (mapcar #'node-spec (sidebar-nodes sidebar)))
-	    ,@(if (sidebar-keyboard sidebar) `(keyboard ,(sidebar-keyboard sidebar)))
+	    ,@(if (sidebar-enable-keyboard-p sidebar) `(keyboard ,(sidebar-enable-keyboard-p sidebar)))
 	    ,@(if (sidebar-menu sidebar) `(menu ,(sidebar-menu sidebar)))
 	    ,@(if (sidebar-on-click sidebar) `(on-click ,(sidebar-on-click sidebar)))
 	    ,@(if (sidebar-on-collapse sidebar) `(on-collapse ,(sidebar-on-collapse sidebar)))
@@ -420,24 +420,23 @@
 
 (defstruct grid
   (:element-id nil :type string)
-  (:columns nil :type list)
-  :header
+  (:columns nil :type list)  ; List of column objects.
+  :header          ; The header of the grid.
   :url             ; URL to the remote data source.
   :method
   :show
   :searches
   :sort-data       ; Array of sort objects (submitted to data source for record sorting).
-  :records)
+  :records
+  :enable-keyboard-p ; Indicates if grid should listen to keyboard.
+  )
 
 ;; autoLoad       ; Indicates if the records should be loaded from the server automatically as user scrolls.
 ;; buttons        ; Object that contains default toolbar items
 ;; column-groups  ; Array of column group objects.
-;; columns        ; Array of column objects.
 ;; context-menu   ; Displays context menu under specified record.
 ;; fixed-body     ; Indicates if the body of the grid is of fixed height.
 ;; get-cell-value ; Returns parse value for the cell.
-;; header         ; The header of the grid.
-;; keyboard       ; Indicates if grid should listen to keyboard.
 ;; last           ; Internal grid's vairables.
 ;; limit          ; Number of records to return from remote data source per attempt.
 ;; mark-search    ; Indicates if result of the search should be highlighted.
@@ -472,10 +471,10 @@
 ;; total ; Total number of records.
 ;; url ; URL to the remote data source.
 
-(defun grid (element-id columns &key header url (method "GET") show searches sort-data records)
+(defun grid (element-id columns &key header url (method "GET") show searches sort-data records enable-keyboard-p)
   (make-grid :element-id element-id
 	     :columns columns :header header :url url :method method :show show
-	     :searches searches :sort-data sort-data :records records))
+	     :searches searches :sort-data sort-data :records records :enable-keyboard-p enable-keyboard-p))
 
 (defun grid-spec (grid)
   `((chain ($ ,(cat "#" (grid-element-id grid))) w2grid)
@@ -488,7 +487,9 @@
      ;; ,@(if (grid-show grid) `(show ,(grid-show grid)))
      ,@(if (grid-searches grid) `(searches ,(grid-searches grid)))
      ,@(if (grid-sort-data grid) `(sort-data ,(grid-sort-data grid)))
-     ,@(if (grid-records grid) `(records ,(records-spec grid))))))
+     ,@(if (grid-records grid) `(records ,(records-spec grid)))
+     ,@(if (grid-enable-keyboard-p grid) `(keyboard ,(grid-enable-keyboard-p grid)))
+     )))
 
 ;;; Toolbar
 
@@ -649,7 +650,7 @@
   :currency-precision ; defines precision, default = 2  
   :group-symbol       ; symbol for number grouping
   :arrows             ; indicates if to display arrows on the right side
-  :keyboard           ; indicates if keyboard should be supported
+  :enable-keyboard-p  ; indicates if keyboard should be supported
   :precision          ; defines precision for auto format
   :silent             ; indicate if to correct silently or display error tag
   :prefix             ; control prefix
@@ -668,7 +669,7 @@
     ,@(if (form-field-options-currency-precision form-field-options) `(currency-precision ,(form-field-options-currency-precision form-field-options)))
     ,@(if (form-field-options-group-symbol form-field-options) `(group-symbol ,(form-field-options-group-symbol form-field-options)))
     ,@(if (form-field-options-arrows form-field-options) `(arrows ,(form-field-options-arrows form-field-options)))
-    ,@(if (form-field-options-keyboard form-field-options) `(keyboard ,(form-field-options-keyboard form-field-options)))
+    ,@(if (form-field-options-enable-keyboard-p form-field-options) `(keyboard ,(form-field-options-enable-keyboard-p form-field-options)))
     ,@(if (form-field-options-precision form-field-options) `(precision ,(form-field-options-precision form-field-options)))
     ,@(if (form-field-options-silent form-field-options) `(silent ,(form-field-options-silent form-field-options)))
     ,@(if (form-field-options-prefix form-field-options) `(prefix ,(form-field-options-prefix form-field-options)))
@@ -755,7 +756,7 @@
   :speed       ; speed popup appears
   :modal       ; if modal, it cannot be closed by clicking on the screen lock
   :maximized   ; by default it is not maximized
-  :keyboard    ; will close popup on esc if not modal
+  :enable-keyboard-p ; will close popup on esc if not modal
   :show-close  ; show closed button by default
   :show-max    ; do not show max button by default
   :transition  ; no content transition by default
@@ -781,7 +782,7 @@
     ,@(if (popup-speed popup) `(speed ,(popup-speed popup)))
     ,@(if (popup-modal popup) `(modal ,(popup-modal popup)))
     ,@(if (popup-maximized popup) `(maximized ,(popup-maximized popup)))
-    ,@(if (popup-keyboard popup) `(keyboard ,(popup-keyboard popup)))
+    ,@(if (popup-enable-keyboard-p popup) `(keyboard ,(popup-enable-keyboard-p popup)))
     ,@(if (popup-show-close popup) `(show-close ,(popup-show-close popup)))
     ,@(if (popup-show-max popup) `(show-max ,(popup-show-max popup)))
     ,@(if (popup-transition popup) `(transition ,(popup-transition popup)))    
@@ -793,8 +794,8 @@
     ,@(if (popup-on-toggle popup) `(on-toggle ,(popup-on-toggle popup)))
     ))
 
-(defun popup (&key title body buttons width height style color opacity speed modal maximized keyboard show-close show-max transition on-close on-keydown on-max on-min on-open on-toggle)
-  (make-popup :title title :body body :buttons buttons :width width :height height :style style :color color :opacity opacity :speed speed :modal modal :maximized maximized :keyboard keyboard :show-close show-close :show-max show-max :transition transition :on-close on-close :on-keydown on-keydown :on-max on-max :on-min on-min :on-open on-open :on-toggle on-toggle))
+(defun popup (&key title body buttons width height style color opacity speed modal maximized enable-keyboard-p show-close show-max transition on-close on-keydown on-max on-min on-open on-toggle)
+  (make-popup :title title :body body :buttons buttons :width width :height height :style style :color color :opacity opacity :speed speed :modal modal :maximized maximized :enable-keyboard-p enable-keyboard-p :show-close show-close :show-max show-max :transition transition :on-close on-close :on-keydown on-keydown :on-max on-max :on-min on-min :on-open on-open :on-toggle on-toggle))
 
 (defun popup-open (popup)
   `((chain w2popup open) ,(popup-spec popup)))
@@ -852,4 +853,3 @@
 
 (defun tab-set (tab-body-element-id body)
   `(lambda () ((chain ($ ,(cat "#" tab-body-element-id)) html) ,body)))
-

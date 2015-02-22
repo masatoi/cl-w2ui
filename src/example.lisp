@@ -95,7 +95,7 @@
 	 (node "expandable-node" "Expandable node" :icon "fa fa-folder" :expanded-p t
 	       :nodes (list (node "sub-node1" "Sub node1")
 			    (node "sub-node2" "Sub node2"))))
-   :keyboard 'true))
+   :enable-keyboard-p 'true))
 
 (defroute "/" (params)
   (declare (ignore params))
