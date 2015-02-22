@@ -29,22 +29,34 @@
 
 (defparameter grid
   (grid "my-grid"
-	(list (column "fname" "First name"    :size "30%")
+	(list (column "fname" "First name"    :size "30%" :sortable-p t)
 	      (column "lname" "Last name"     :size "30%")
 	      (column "email" "Email Address" :size "40%"))
 	:records '(("John"    "Smith"  "john.smith@foo.com")
 		   ("Taro"    "Yamada" "yamada@bar.com")
 		   ("Satoshi" "Imai"   "satoshi.imai@gmail.com"))))
 
+(defun on-expand-display-content (content-list &key (height 100))
+  `(lambda (event)
+     ((chain
+       ((chain ($ (+ "#" (chain event box_id))) html)
+	(aref ,(cons 'list content-list) (- (chain event recid) 1)))
+       animate)
+      (create height ,(format nil "~Apx" height)) 50)))
+
 (defparameter grid2
   (grid "my-grid2"
-	(list (column "fname" "First name"    :size "30%" :sortable-p t)
+	(list (column "fname" "First name"    :size "30%")
 	      (column "lname" "Last name"     :size "30%")
 	      (column "email" "Email Address" :size "40%"))
 	:header "Header title"
-	:show (show :header-p t :toolbar-p t :footer-p t)
+	:show (show :header-p t :toolbar-p t :footer-p t :line-numbers-p t :expand-column-p t :select-column-p t)
 	:url "/grid-data"
-	:method "GET"))
+	:method "GET"
+	:on-click  '(lambda (event) (console.log event))
+	:on-select  '(lambda (event) (console.log event))
+	:on-expand (on-expand-display-content '("foo" "bar" "baz"))
+	))
 
 ;; type: button, check, radio, drop, menu, break, spacer, html
 (defparameter toolbar
@@ -184,6 +196,6 @@
   (declare (ignore params))
   (cl-json:encode-json-alist-to-string
    '(("total" . 3) 
-     ("records" . ((("fname" . "Nobunaga") ("lname" . "Oda") ("email" . "odanobu@owari.com"))
-		   (("fname" . "Hideyoshi") ("lname" . "Toyotomi") ("email" . "hideyoshi@saru.com"))
-		   (("fname" . "Ieyasu") ("lname" . "Tokugawa") ("email" . "Ieyasu@tokugawa.com")))))))
+     ("records" . ((("recid" . 1) ("fname" . "Nobunaga") ("lname" . "Oda") ("email" . "odanobu@owari.com"))
+		   (("recid" . 2) ("fname" . "Hideyoshi") ("lname" . "Toyotomi") ("email" . "hideyoshi@saru.com"))
+		   (("recid" . 3) ("fname" . "Ieyasu") ("lname" . "Tokugawa") ("email" . "Ieyasu@tokugawa.com")))))))

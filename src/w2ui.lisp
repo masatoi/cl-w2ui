@@ -434,6 +434,12 @@
   :records
   :enable-keyboard-p ; Indicates if grid should listen to keyboard.
   :show
+
+  ;; Events
+  :on-click
+  :on-dbl-click
+  :on-select
+  :on-expand
   )
 
 ;; autoLoad       ; Indicates if the records should be loaded from the server automatically as user scrolls.
@@ -472,13 +478,14 @@
 ;; sortData ; Array of sort objects (submitted to data source for record sorting).
 ;; summary ; Summary records that displayed on the bottom
 ;; total ; Total number of records.
-;; url ; URL to the remote data source.
 
-(defun grid (element-id columns &key header url method searches sort-data records enable-keyboard-p show)
+
+(defun grid (element-id columns &key header url method searches sort-data records enable-keyboard-p show on-click on-dbl-click on-select on-expand)
   (make-grid :element-id element-id
 	     :columns columns :header header :url url :method method
 	     :searches searches :sort-data sort-data :records records :enable-keyboard-p enable-keyboard-p
-	     :show show))
+	     :show show
+	     :on-click on-click :on-dbl-click on-dbl-click :on-select on-select :on-expand on-expand))
 
 (defun grid-spec (grid)
   `((chain ($ ,(cat "#" (grid-element-id grid))) w2grid)
@@ -493,6 +500,10 @@
      ,@(if (grid-records grid) `(records ,(records-spec grid)))
      ,@(if (grid-enable-keyboard-p grid) `(keyboard ,(grid-enable-keyboard-p grid)))
      ,@(if (grid-show grid) `(show ,(show-spec (grid-show grid))))
+     ,@(if (grid-on-click grid) `(on-click ,(grid-on-click grid)))
+     ,@(if (grid-on-dbl-click grid) `(on-dbl-click ,(grid-on-dbl-click grid)))
+     ,@(if (grid-on-select grid) `(on-select ,(grid-on-select grid)))
+     ,@(if (grid-on-expand grid) `(on-expand ,(grid-on-expand grid)))
      )))
 
 ;;; Toolbar
