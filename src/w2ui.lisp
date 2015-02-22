@@ -65,7 +65,7 @@
 (defstruct panel
   :type         ; type of the panel can be: left, right, top, bottom, preview
   :title        ; title for the panel
-  :size         ; width or height of the panel depending on panel type
+  (:size nil :type (or null string integer)) ; width or height of the panel depending on panel type
   :min-size     ; minimum size of the panel in px when it is resized
   :max-size     ; if a number, then it defined maximum size of the panel
   :hidden-p     ; indicates if panel is hidden
@@ -88,7 +88,9 @@
 		     overflow style content width height tabs toolbar
 		     on-refresh on-resizing on-show on-hide)
   (assert (member type '(main top bottom left right preview)))
-  (make-panel :type type :title title :size size :min-size min-size :max-size max-size
+  (make-panel :type type :title title
+	      :size (typecase size (integer (format nil "~Apx" size)) (t size))
+	      :min-size min-size :max-size max-size
 	      :hidden-p hidden-p :resizable-p resizable-p
 	      :overflow overflow :style style :content content
 	      :width width :height height :tabs tabs :toolbar toolbar
@@ -299,11 +301,11 @@
 ;;; Grid
 
 (defstruct column
-  :field           ; field name to map column to a record
-  :caption         ; column caption 
-  :size            ; size of column in px or %
-  :min             ; minimum width of column in px
-  :max             ; maximum width of column in px
+  (:field nil :type (or null string))    ; field name to map column to a record
+  (:caption nil :type (or null string))  ; column caption 
+  (:size nil :type (or null string integer)) ; size of column in px or %
+  (:min 15 :type  (or null integer))   ; minimum width of column in px
+  (:max nil :type (or null integer))  ; maximum width of column in px
   :grid-min-width  ; minimum width of the grid when column is visible
   :size-corrected  ; read only, corrected size (see explanation below)
   :size-calculated ; read only, size in px (see explanation below)
@@ -321,9 +323,11 @@
 
 (defun column (field caption
 	       &key size min max grid-min-width size-corrected size-calculated
-		 hidden-p sortable-p searchable-p resizable-p hideable-p
+		 hidden-p sortable-p searchable-p (resizable-p t) (hideable-p t)
 		 attr style render title editable)
-  (make-column :field field :caption caption :size size :min min :max max
+  (make-column :field field :caption caption
+	       :size (typecase size (integer (format nil "~Apx" size)) (t size))
+	       :min min :max max
 	       :grid-min-width grid-min-width :size-corrected size-corrected
 	       :size-calculated size-calculated :hidden-p hidden-p :sortable-p sortable-p
 	       :searchable-p searchable-p :resizable-p resizable-p :hideable-p hideable-p
@@ -342,8 +346,8 @@
     ,@(if (column-hidden-p column) `(hidden ,(column-hidden-p column)))
     ,@(if (column-sortable-p column) `(sortable ,(column-sortable-p column)))
     ,@(if (column-searchable-p column) `(searchable ,(column-searchable-p column)))
-    ,@(if (column-resizable-p column) `(resizable ,(column-resizable-p column)))
-    ,@(if (column-hideable-p column) `(hideable ,(column-hideable-p column)))
+    ,@(if (not (column-resizable-p column)) `(resizable ,(column-resizable-p column)))
+    ,@(if (not (column-hideable-p column)) `(hideable ,(column-hideable-p column)))
     ,@(if (column-attr column) `(attr ,(column-attr column)))
     ,@(if (column-style column) `(style ,(column-style column)))
     ,@(if (column-render column) `(render ,(column-render column)))
@@ -351,30 +355,30 @@
     ,@(if (column-editable column) `(editable ,(column-editable column)))))
 
 (defstruct show
-  :header-p           ; indicates if header is visible
-  :toolbar-p          ; indicates if toolbar is visible
-  :footer-p           ; indicates if footer is visible
-  :column-headers-p   ; indicates if columns is visible
-  :line-numbers-p     ; indicates if line numbers column is visible
-  :expand-column-p    ; indicates if expand column is visible
-  :select-column-p    ; indicates if select column is visible
-  :empty-records-p    ; indicates if empty records are visible
-  :toolbar-reload-p   ; indicates if toolbar reload button is visible
-  :toolbar-columns-p  ; indicates if toolbar columns button is visible
-  :toolbar-search-p   ; indicates if toolbar search controls are visible
-  :toolbar-add-p      ; indicates if toolbar add new button is visible
-  :toolbar-edit-p     ; indicates if toolbar edit button is visible
-  :toolbar-delete-p   ; indicates if toolbar delete button is visible
-  :toolbar-save-p     ; indicates if toolbar save button is visible
-  :selection-border-p ; display border arround selection (for selectType = 'cell')
-  :record-titles-p    ; indicates if to define titles for records
-  :skip-records-p     ; indicates if skip records should be visible
+  (:header-p nil)         ; indicates if header is visible
+  (:toolbar-p nil)        ; indicates if toolbar is visible
+  (:footer-p nil)         ; indicates if footer is visible
+  (:column-headers-p t)   ; indicates if columns is visible
+  (:line-numbers-p nil)   ; indicates if line numbers column is visible
+  (:expand-column-p nil)  ; indicates if expand column is visible
+  (:select-column-p nil)  ; indicates if select column is visible
+  (:empty-records-p t)    ; indicates if empty records are visible
+  (:toolbar-reload-p t)   ; indicates if toolbar reload button is visible
+  (:toolbar-columns-p t)  ; indicates if toolbar columns button is visible
+  (:toolbar-search-p t)   ; indicates if toolbar search controls are visible
+  (:toolbar-add-p t)      ; indicates if toolbar add new button is visible
+  (:toolbar-edit-p t)     ; indicates if toolbar edit button is visible
+  (:toolbar-delete-p t)   ; indicates if toolbar delete button is visible
+  (:toolbar-save-p t)     ; indicates if toolbar save button is visible
+  (:selection-border-p t) ; display border arround selection (for selectType = 'cell')
+  (:record-titles-p t)    ; indicates if to define titles for records
+  (:skip-records-p t)     ; indicates if skip records should be visible
   )
 
-(defun show (&key header-p toolbar-p footer-p column-headers-p line-numbers-p expand-column-p
-	       select-column-p empty-records-p toolbar-reload-p toolbar-columns-p toolbar-search-p
-	       toolbar-add-p toolbar-edit-p toolbar-delete-p toolbar-save-p selection-border-p
-	       record-titles-p skip-records-p)
+(defun show (&key header-p toolbar-p footer-p (column-headers-p t) line-numbers-p expand-column-p
+	       select-column-p (empty-records-p t) (toolbar-reload-p t) (toolbar-columns-p t) (toolbar-search-p t)
+	       (toolbar-add-p t) (toolbar-edit-p t) (toolbar-delete-p t) (toolbar-save-p t) (selection-border-p t)
+	       (record-titles-p t) (skip-records-p t))
   (make-show :header-p header-p :toolbar-p toolbar-p :footer-p footer-p
 	     :column-headers-p column-headers-p :line-numbers-p line-numbers-p
 	     :expand-column-p expand-column-p :select-column-p select-column-p
@@ -390,21 +394,21 @@
     ,@(if (show-header-p show) `(header ,(show-header-p show)))
     ,@(if (show-toolbar-p show) `(toolbar ,(show-toolbar-p show)))
     ,@(if (show-footer-p show) `(footer ,(show-footer-p show)))
-    ,@(if (show-column-headers-p show) `(column-headers ,(show-column-headers-p show)))
+    ,@(if (not (show-column-headers-p show)) `(column-headers ,(show-column-headers-p show)))
     ,@(if (show-line-numbers-p show) `(line-numbers ,(show-line-numbers-p show)))
     ,@(if (show-expand-column-p show) `(expand-column ,(show-expand-column-p show)))
     ,@(if (show-select-column-p show) `(select-column ,(show-select-column-p show)))
-    ,@(if (show-empty-records-p show) `(empty-records ,(show-empty-records-p show)))
-    ,@(if (show-toolbar-reload-p show) `(toolbar-reload ,(show-toolbar-reload-p show)))
-    ,@(if (show-toolbar-columns-p show) `(toolbar-columns ,(show-toolbar-columns-p show)))
-    ,@(if (show-toolbar-search-p show) `(toolbar-search ,(show-toolbar-search-p show)))
-    ,@(if (show-toolbar-add-p show) `(toolbar-add ,(show-toolbar-add-p show)))
-    ,@(if (show-toolbar-edit-p show) `(toolbar-edit ,(show-toolbar-edit-p show)))
-    ,@(if (show-toolbar-delete-p show) `(toolbar-delete ,(show-toolbar-delete-p show)))
-    ,@(if (show-toolbar-save-p show) `(toolbar-save ,(show-toolbar-save-p show)))
-    ,@(if (show-selection-border-p show) `(selection-border ,(show-selection-border-p show)))
-    ,@(if (show-record-titles-p show) `(record-titles ,(show-record-titles-p show)))
-    ,@(if (show-skip-records-p show) `(skip-records ,(show-skip-records-p show)))))
+    ,@(if (not (show-empty-records-p show)) `(empty-records ,(show-empty-records-p show)))
+    ,@(if (not (show-toolbar-reload-p show)) `(toolbar-reload ,(show-toolbar-reload-p show)))
+    ,@(if (not (show-toolbar-columns-p show)) `(toolbar-columns ,(show-toolbar-columns-p show)))
+    ,@(if (not (show-toolbar-search-p show)) `(toolbar-search ,(show-toolbar-search-p show)))
+    ,@(if (not (show-toolbar-add-p show)) `(toolbar-add ,(show-toolbar-add-p show)))
+    ,@(if (not (show-toolbar-edit-p show)) `(toolbar-edit ,(show-toolbar-edit-p show)))
+    ,@(if (not (show-toolbar-delete-p show)) `(toolbar-delete ,(show-toolbar-delete-p show)))
+    ,@(if (not (show-toolbar-save-p show)) `(toolbar-save ,(show-toolbar-save-p show)))
+    ,@(if (not (show-selection-border-p show)) `(selection-border ,(show-selection-border-p show)))
+    ,@(if (not (show-record-titles-p show)) `(record-titles ,(show-record-titles-p show)))
+    ,@(if (not (show-skip-records-p show)) `(skip-records ,(show-skip-records-p show)))))
 
 (defun record-spec (columns record i)
   (let ((fields (mapcar #'column-field columns)))
@@ -421,14 +425,15 @@
 (defstruct grid
   (:element-id nil :type string)
   (:columns nil :type list)  ; List of column objects.
-  :header          ; The header of the grid.
-  :url             ; URL to the remote data source.
-  :method
-  :show
+  (:header nil :type (or null string)) ; The header of the grid.
+  (:url nil :type (or null string))       ; URL to the remote data source.
+  (:method nil :type (or null string))    ; Overwrites method for ajax requests.
+  :toolbar         ; Toolbar for the grid.
   :searches
   :sort-data       ; Array of sort objects (submitted to data source for record sorting).
   :records
   :enable-keyboard-p ; Indicates if grid should listen to keyboard.
+  :show
   )
 
 ;; autoLoad       ; Indicates if the records should be loaded from the server automatically as user scrolls.
@@ -441,7 +446,6 @@
 ;; limit          ; Number of records to return from remote data source per attempt.
 ;; mark-search    ; Indicates if result of the search should be highlighted.
 ;; menu           ; Array of object for context menu.
-;; method         ; Overwrites method for ajax requests.
 ;; msgAJAXerror   ; Error message when server returns undefined error.
 ;; msgDelete      ; Confirmation message when user clicks the delete button.
 ;; msgNotJSON     ; Error message when server does not return JSON structure.
@@ -467,14 +471,14 @@
 ;; show ; Map of indicators which elements of the grid are visible.
 ;; sortData ; Array of sort objects (submitted to data source for record sorting).
 ;; summary ; Summary records that displayed on the bottom
-;; toolbar ; Toolbar for the grid.
 ;; total ; Total number of records.
 ;; url ; URL to the remote data source.
 
-(defun grid (element-id columns &key header url (method "GET") show searches sort-data records enable-keyboard-p)
+(defun grid (element-id columns &key header url method searches sort-data records enable-keyboard-p show)
   (make-grid :element-id element-id
-	     :columns columns :header header :url url :method method :show show
-	     :searches searches :sort-data sort-data :records records :enable-keyboard-p enable-keyboard-p))
+	     :columns columns :header header :url url :method method
+	     :searches searches :sort-data sort-data :records records :enable-keyboard-p enable-keyboard-p
+	     :show show))
 
 (defun grid-spec (grid)
   `((chain ($ ,(cat "#" (grid-element-id grid))) w2grid)
@@ -484,11 +488,11 @@
      ,@(if (grid-header grid) `(header ,(grid-header grid)))
      ,@(if (grid-url grid) `(url ,(grid-url grid)))
      ,@(if (grid-method grid) `(method ,(grid-method grid)))
-     ;; ,@(if (grid-show grid) `(show ,(grid-show grid)))
      ,@(if (grid-searches grid) `(searches ,(grid-searches grid)))
      ,@(if (grid-sort-data grid) `(sort-data ,(grid-sort-data grid)))
      ,@(if (grid-records grid) `(records ,(records-spec grid)))
      ,@(if (grid-enable-keyboard-p grid) `(keyboard ,(grid-enable-keyboard-p grid)))
+     ,@(if (grid-show grid) `(show ,(show-spec (grid-show grid))))
      )))
 
 ;;; Toolbar
