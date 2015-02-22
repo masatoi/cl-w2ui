@@ -16,6 +16,7 @@
 	       :ningle
                :cl-ppcre
 	       :cl-who
+	       :cl-json
 	       :parenscript
 	       :alexandria
 	       :anaphora)

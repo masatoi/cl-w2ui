@@ -36,6 +36,16 @@
 		   ("Taro"    "Yamada" "yamada@bar.com")
 		   ("Satoshi" "Imai"   "satoshi.imai@gmail.com"))))
 
+(defparameter grid2
+  (grid "my-grid2"
+	(list (column "fname" "First name"    :size "30%" :sortable-p t)
+	      (column "lname" "Last name"     :size "30%")
+	      (column "email" "Email Address" :size "40%"))
+	:header "Header title"
+	:show (show :header-p t :toolbar-p t :footer-p t)
+	:url "/grid-data"
+	:method "GET"))
+
 ;; type: button, check, radio, drop, menu, break, spacer, html
 (defparameter toolbar
   (toolbar "my-toolbar"
@@ -108,7 +118,7 @@
        (str
 	(cat
 	 ;; define Javascript w2ui objects
-	 (define-w2ui-objects layout grid sidebar toolbar form tabs)
+	 (define-w2ui-objects layout grid grid2 sidebar toolbar form tabs)
 	 ;; set sidebar to left panel of layout
 	 (ps (funcall (lisp (layout-set layout 'left sidebar))))))))))
 
@@ -140,7 +150,9 @@
   (declare (ignore params))
   (html (:h2 "Grid sample")
 	(:div :id "my-grid" :style "width: 100%; height: 400px;")
-	(:script (str (render-w2ui-objects grid)))))
+	(:h2 "Grid sample with header and toolbar")
+	(:div :id "my-grid2" :style "width: 100%; height: 400px;")
+	(:script (str (render-w2ui-objects grid grid2)))))
 
 (defroute "/toolbar" (params)
   (declare (ignore params))
@@ -166,3 +178,12 @@
   (declare (ignore params))
   (html (:h2 "Popup sample")
 	(str (render-button "Display popup" :on-click (popup-open popup)))))
+
+;; For records of grid2
+(defroute "/grid-data" (params :method :GET)
+  (declare (ignore params))
+  (cl-json:encode-json-alist-to-string
+   '(("total" . 3) 
+     ("records" . ((("fname" . "Nobunaga") ("lname" . "Oda") ("email" . "odanobu@owari.com"))
+		   (("fname" . "Hideyoshi") ("lname" . "Toyotomi") ("email" . "hideyoshi@saru.com"))
+		   (("fname" . "Ieyasu") ("lname" . "Tokugawa") ("email" . "Ieyasu@tokugawa.com")))))))
