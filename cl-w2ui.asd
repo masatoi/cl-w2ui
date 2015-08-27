@@ -13,6 +13,7 @@
   :author "Satoshi Imai"
   :license "LLGPL"
   :depends-on (:clack
+	       :clack-v1-compat
 	       :ningle
                :cl-ppcre
 	       :cl-who
@@ -25,7 +26,7 @@
                 ((:file "app")
 		 (:file "utils")
 		 (:file "w2ui" :depends-on ("utils"))
-		 (:file "example" :depends-on ("utils" "w2ui"))
+		 (:file "example" :depends-on ("app" "utils" "w2ui"))
 		 )))
   :description ""
   :long-description

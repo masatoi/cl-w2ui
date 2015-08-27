@@ -27,7 +27,7 @@
     `(with-html-output-to-string (,s)
        ,@body)))
 
-(defmacro with-head ((&key title css script (content-type "text/html") (encoding "UTF-8")) &body body)
+(defmacro with-head ((&key title css script favicon (content-type "text/html") (encoding "UTF-8")) &body body)
   "Example:
  (with-head (:title \"Title\" :css \"foo.css\")
    (html (:p \"Hello,World!\")))
@@ -43,6 +43,8 @@
 		,@(if (consp script)
 		    (mapcar (lambda (script) `(:script :src ,script)) script)
 		    `((:script :src ,script)))
+		,@(if favicon `((:link :rel "shortcut icon" :type "image/vnd.microsoft.icon" :href ,favicon)
+				(:link :rel "icon" :type "image/vnd.microsoft.icon" :href ,favicon)))
 		(:meta :http-equiv "Content-Type"
 		       :content ,(format nil "~A; charset=~A" content-type encoding)))
 	 (str ,@body)))

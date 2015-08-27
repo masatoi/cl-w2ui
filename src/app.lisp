@@ -5,7 +5,8 @@
 (defpackage cl-w2ui.app
   (:nicknames :cl-w2ui :app)
   (:use :cl :anaphora
-	:clack :clack.request :clack.builder
+	:clack
+	:clack.request
 	:clack.middleware.static
 	:clack.middleware.session
 	:clack.middleware.accesslog)
@@ -61,17 +62,20 @@
 	 (lambda (,params) ,@body)))
 
 ;;; session operators
-(defun store-to-session (key val &optional (request *request*))
-  (aif request
-    (let ((env (env it)))
-      (setf (gethash key (getf env :clack.session)) val))))
+(defun store-to-session (key val request)
+  (let ((env (etypecase request
+	       (clack.request:<request> (clack.request:env request))
+	       (lack.request:request (lack.request:request-env request)))))
+    (setf (gethash key (getf env :clack.session)) val)))
 
-(defun get-from-session (key &optional (request *request*))
-  (aif request
-    (let ((env (env request)))
-      (gethash key (getf env :clack.session)))))
+(defun get-from-session (key request)
+  (let ((env (etypecase request
+	       (clack.request:<request> (clack.request:env request))
+	       (lack.request:request (lack.request:request-env request)))))
+    (gethash key (getf env :clack.session))))
 
-(defun remove-from-session (key &optional (request *request*))
-  (aif request
-    (let ((env (env request)))
-      (remhash key (getf env :clack.session)))))
+(defun remove-from-session (key request)
+  (let ((env (etypecase request
+	       (clack.request:<request> (clack.request:env request))
+	       (lack.request:request (lack.request:request-env request)))))
+    (remhash key (getf env :clack.session))))

@@ -1,6 +1,6 @@
 ;;; -*- Coding:utf-8; Mode:Lisp; -*-
 
-(in-package :cl-w2ui)
+(in-package :cl-user)
 
 (defpackage :cl-w2ui.w2ui
   (:nicknames :w2ui)
@@ -86,7 +86,8 @@
 
 (defun panel (type &key title size min-size max-size hidden-p resizable-p
 		     overflow style content width height tabs toolbar
-		     on-refresh on-resizing on-show on-hide)
+		     on-resizing on-resizer-click on-show on-hide
+		     on-refresh on-destroy on-render on-resize)
   (assert (member type '(main top bottom left right preview)))
   (make-panel :type type :title title
 	      :size (typecase size (integer (format nil "~Apx" size)) (t size))
@@ -94,7 +95,8 @@
 	      :hidden-p hidden-p :resizable-p resizable-p
 	      :overflow overflow :style style :content content
 	      :width width :height height :tabs tabs :toolbar toolbar
-	      :on-refresh on-refresh :on-resizing on-resizing :on-show on-show :on-hide on-hide))
+	      :on-refresh on-refresh :on-resizing on-resizing :on-show on-show :on-hide on-hide
+	      ))
 
 (defun panel-spec (panel)
   `(create ,@(if (panel-type panel) `(type ,(string-downcase (symbol-name (panel-type panel)))))
@@ -114,26 +116,43 @@
 	   ,@(if (panel-on-refresh panel) `(on-refresh ,(panel-on-refresh panel)))
 	   ,@(if (panel-on-resizing panel) `(on-resizing ,(panel-on-resizing panel)))
 	   ,@(if (panel-on-show panel) `(on-show ,(panel-on-show panel)))
-	   ,@(if (panel-on-hide panel) `(on-hide ,(panel-on-hide panel)))))
+	   ,@(if (panel-on-hide panel) `(on-hide ,(panel-on-hide panel)))
+	   ))
 
 (defstruct layout
   (:element-id nil :type string)
   (:panels nil :type list) ; list of panels
+  (:padding 1 :type integer)
+  (:resizer-size 4 :type integer)
+  
   ;; Events
-  :on-resize  ; called when object is resized
+  :on-destroy ; Called when object is destroyed.
+  :on-refresh ; Called when object is refreshed.
+  :on-render  ; Called when object is rendered.
+  :on-resize  ; Called when object is resized.
+  :on-resizer-click
   )
 
-(defun layout (element-id panels &key on-resize)
-  (make-layout :element-id element-id :panels panels :on-resize on-resize))
+(defun layout (element-id panels &key (padding 1) (resizer-size 4) on-destroy on-refresh on-render on-resize on-resizer-click)
+  (make-layout :element-id element-id :panels panels
+	       :padding padding :resizer-size resizer-size
+	       :on-destroy on-destroy :on-refresh on-refresh :on-render on-render
+	       :on-resize on-resize :on-resizer-click on-resizer-click))
 
 (defun layout-spec (layout)
   `((chain ($ ,(cat "#" (layout-element-id layout))) w2layout)
     (create name   ,(layout-element-id layout)
 	    panels ,(cons 'list (mapcar #'panel-spec (layout-panels layout)))
+	    padding ,(layout-padding layout)
+	    resizer ,(layout-resizer-size layout)
+	    ,@(if (layout-on-destroy layout) `(on-destroy ,(layout-on-destroy layout)))
+	    ,@(if (layout-on-refresh layout) `(on-refresh ,(layout-on-refresh layout)))
+	    ,@(if (layout-on-render layout) `(on-render ,(layout-on-render layout)))
 	    ,@(if (layout-on-resize layout) `(on-resize ,(layout-on-resize layout)))
+	    ,@(if (layout-on-resizer-click layout) `(on-resizer-click ,(layout-on-resizer-click layout)))
 	    )))
 
-;; layout functions
+;; layout utilities
 
 (defun layout-set (layout panel-type w2ui-obj-or-string)
   `(lambda ()
