@@ -63,19 +63,13 @@
 
 ;;; session operators
 (defun store-to-session (key val request)
-  (let ((env (etypecase request
-	       (clack.request:<request> (clack.request:env request))
-	       (lack.request:request (lack.request:request-env request)))))
-    (setf (gethash key (getf env :clack.session)) val)))
+  (let ((env (lack.request:request-env request)))
+    (setf (gethash key (getf env :lack.session)) val)))
 
 (defun get-from-session (key request)
-  (let ((env (etypecase request
-	       (clack.request:<request> (clack.request:env request))
-	       (lack.request:request (lack.request:request-env request)))))
-    (gethash key (getf env :clack.session))))
+  (let ((env (lack.request:request-env request)))
+    (gethash key (getf env :lack.session))))
 
 (defun remove-from-session (key request)
-  (let ((env (etypecase request
-	       (clack.request:<request> (clack.request:env request))
-	       (lack.request:request (lack.request:request-env request)))))
-    (remhash key (getf env :clack.session))))
+  (let ((env (lack.request:request-env request)))
+    (remhash key (getf env :lack.session))))

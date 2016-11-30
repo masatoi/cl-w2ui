@@ -13,6 +13,15 @@
 	   ;; layout
 	   :layout :panel :main :top :bottom :left :right :preview
 	   :layout-set :layout-load :layout-show :layout-hide
+           :layout-element-id
+           :layout-panels
+           :layout-padding
+           :layout-resizer-size
+           :layout-on-destroy
+           :layout-on-refresh
+           :layout-on-render
+           :layout-on-resize
+           :layout-on-resizer-click
 	   ;; sidebar
 	   :sidebar :node
 	   ;; grid
@@ -365,8 +374,8 @@
     ,@(if (column-hidden-p column) `(hidden ,(column-hidden-p column)))
     ,@(if (column-sortable-p column) `(sortable ,(column-sortable-p column)))
     ,@(if (column-searchable-p column) `(searchable ,(column-searchable-p column)))
-    ,@(if (not (column-resizable-p column)) `(resizable ,(column-resizable-p column)))
-    ,@(if (not (column-hideable-p column)) `(hideable ,(column-hideable-p column)))
+    ,@(if (column-resizable-p column) `(resizable ,(column-resizable-p column)))
+    ,@(if (column-hideable-p column) `(hideable ,(column-hideable-p column)))
     ,@(if (column-attr column) `(attr ,(column-attr column)))
     ,@(if (column-style column) `(style ,(column-style column)))
     ,@(if (column-render column) `(render ,(column-render column)))
@@ -453,12 +462,18 @@
   :records
   :enable-keyboard-p ; Indicates if grid should listen to keyboard.
   :show
+  :multi-search
+  :multi-select
+  :multi-sort
 
   ;; Events
   :on-click
   :on-dbl-click
   :on-select
+  :on-unselect
   :on-expand
+  :on-add
+  :on-delete
   )
 
 ;; autoLoad       ; Indicates if the records should be loaded from the server automatically as user scrolls.
@@ -498,13 +513,15 @@
 ;; summary ; Summary records that displayed on the bottom
 ;; total ; Total number of records.
 
-
-(defun grid (element-id columns &key header url method searches sort-data records enable-keyboard-p show on-click on-dbl-click on-select on-expand)
+(defun grid (element-id columns &key header url method searches sort-data records enable-keyboard-p multi-search multi-select multi-sort
+                                  show on-click on-dbl-click on-select on-unselect on-expand on-add on-delete)
   (make-grid :element-id element-id
 	     :columns columns :header header :url url :method method
 	     :searches searches :sort-data sort-data :records records :enable-keyboard-p enable-keyboard-p
+             :multi-search multi-search :multi-select multi-select :multi-sort multi-sort
 	     :show show
-	     :on-click on-click :on-dbl-click on-dbl-click :on-select on-select :on-expand on-expand))
+	     :on-click on-click :on-dbl-click on-dbl-click :on-select on-select :on-unselect on-unselect
+             :on-expand on-expand :on-add on-add :on-delete on-delete))
 
 (defun grid-spec (grid)
   `((chain ($ ,(cat "#" (grid-element-id grid))) w2grid)
@@ -518,11 +535,19 @@
      ,@(if (grid-sort-data grid) `(sort-data ,(grid-sort-data grid)))
      ,@(if (grid-records grid) `(records ,(records-spec grid)))
      ,@(if (grid-enable-keyboard-p grid) `(keyboard ,(grid-enable-keyboard-p grid)))
+     ,@(if (grid-multi-search grid) `(multi-search ,(grid-multi-search grid)))
+     ,@(if (grid-multi-select grid) `(multi-select ,(grid-multi-select grid)))
+     ,@(if (grid-multi-sort grid) `(multi-sort ,(grid-multi-sort grid)))
+     ,@(if (grid-records grid) `(records ,(records-spec grid)))
+     ,@(if (grid-records grid) `(records ,(records-spec grid)))
      ,@(if (grid-show grid) `(show ,(show-spec (grid-show grid))))
      ,@(if (grid-on-click grid) `(on-click ,(grid-on-click grid)))
      ,@(if (grid-on-dbl-click grid) `(on-dbl-click ,(grid-on-dbl-click grid)))
      ,@(if (grid-on-select grid) `(on-select ,(grid-on-select grid)))
+     ,@(if (grid-on-unselect grid) `(on-unselect ,(grid-on-unselect grid)))
      ,@(if (grid-on-expand grid) `(on-expand ,(grid-on-expand grid)))
+     ,@(if (grid-on-add grid) `(on-add ,(grid-on-add grid)))
+     ,@(if (grid-on-delete grid) `(on-delete ,(grid-on-delete grid)))
      )))
 
 ;;; Toolbar
