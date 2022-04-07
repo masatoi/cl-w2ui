@@ -12,8 +12,11 @@
   :version "0.1"
   :author "Satoshi Imai"
   :license "LLGPL"
-  :depends-on (:clack
-	       :clack-v1-compat
+  :depends-on (:lack
+               :lack-middleware-static
+               :lack-middleware-session
+               :lack-middleware-accesslog
+               :clack
 	       :ningle
                :cl-ppcre
 	       :cl-who

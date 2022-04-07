@@ -14,7 +14,7 @@
 	  (list (panel 'main :content "<h2>Main panel</h2>")
 		(panel 'top :size 100 :content "<h2>Top panel</h2>")
 		(panel 'left :size 200 :resizable-p t
-		       :on-resizing '(lambda (event) (console.log "left panel resized")))
+		       :on-resizing '(lambda (event) (chain console (log "left panel resized"))))
 		(panel 'right :size 100 :resizable-p t :content "<h2>Right panel</h2>" :hidden-p t)
 		(panel 'preview :size 100 :resizable-p t :content "<h2>Preview panel</h2>" :hidden-p t)
 		(panel 'bottom :size 100 :resizable-p t :content "<h2>Bottom panel</h2>" :hidden-p t))))
@@ -23,7 +23,7 @@
   (tabs "my-tabs"
 	(list (tab "tab1" "Tab1" :on-click `(lambda () ((chain ($ "#tab-body") html) ,(html (:p "This is Tab1.")))))
 	      (tab "tab2" "Tab2" :on-click `(lambda (event)					      
-					      (console.log event)
+					      (chain console (log event))
 					      ((chain ($ "#tab-body") html) ,(html (:p "This is Tab2.")))))
 	      (tab "tab3" "Tab3" :on-click (tab-set "tab-body" (html (:p "This is Tab3.")))))))
 
@@ -53,8 +53,8 @@
 	:show (show :header-p t :toolbar-p t :footer-p t :line-numbers-p t :expand-column-p t :select-column-p t)
 	:url "/grid-data"
 	:method "GET"
-	:on-click  '(lambda (event) (console.log event))
-	:on-select  '(lambda (event) (console.log event))
+	:on-click  '(lambda (event) (chain console (log event)))
+	:on-select  '(lambda (event) (chain console (log event)))
 	:on-expand (on-expand-display-content '("foo" "bar" "baz"))
 	))
 
@@ -80,7 +80,7 @@
 		       :sub-items (list (sub-item "sub-item1" :text "sub-item1"
 						  :on-click '(lambda () (alert "This is sub-item1")))
 					(sub-item "sub-item2" :text "sub-item2"
-						  :on-click '(lambda (event) (console.log event))))))))
+						  :on-click '(lambda (event) (chain console (log event)))))))))
 
 (defparameter form
   (form "my-form"
@@ -103,7 +103,7 @@
 	 :buttons (cat (render-button "OK" :on-click (popup-close) :id "popup-ok")
 		       (render-button "Cancel" :on-click (popup-close)))
 	 :on-keydown '(lambda (event) ; describe keycode
-		       (console.log (+ "Pressed keycode: " (chain event original-event key-code))))))
+		       (chain console (log (+ "Pressed keycode: " (chain event original-event key-code)))))))
 
 (defparameter sidebar
   (sidebar
@@ -122,17 +122,19 @@
 (defroute "/" (params)
   (declare (ignore params))
   (with-head (:title "w2ui demo"
-	      :css ("/css/w2ui-1.4.2.css" "/css/font-awesome.css" "/css/example.css")
-	      :script ("/js/jquery-2.1.1.js" "/js/w2ui-1.4.2.js"))
+	      :css ("/css/w2ui-1.5.css" "/css/font-awesome.css" "/css/example.css")
+	      :script ("/js/jquery-3.6.0.js" "/js/w2ui-1.5.js"))
     (html
       (:div :id "my-layout" :style "width: 100%; height: 100%;")
       (:script
        (str
-	(cat
-	 ;; define Javascript w2ui objects
-	 (define-w2ui-objects layout grid grid2 sidebar toolbar form tabs)
-	 ;; set sidebar to left panel of layout
-	 (ps (funcall (lisp (layout-set layout 'left sidebar))))))))))
+        (cat
+         ;; define Javascript w2ui objects
+         (define-w2ui-objects layout grid grid2 sidebar toolbar form tabs)
+         ;; set sidebar to left panel of layout
+         (ps
+           (setq main (lisp (layout-set layout 'left sidebar)))
+           (funcall main))))))))
 
 (defroute "/layout-operations" (params)
   (declare (ignore params))
