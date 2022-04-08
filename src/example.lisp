@@ -1,7 +1,3 @@
-;;; -*- Coding:utf-8; Mode:Lisp; -*-
-
-(in-package :cl-user)
-
 (defpackage cl-w2ui.example
   (:nicknames :example)
   (:use :cl :cl-w2ui.utils :cl-w2ui.app :cl-w2ui.w2ui :cl-who)
@@ -14,7 +10,7 @@
 	  (list (panel 'main :content "<h2>Main panel</h2>")
 		(panel 'top :size 100 :content "<h2>Top panel</h2>")
 		(panel 'left :size 200 :resizable-p t
-		       :on-resizing '(lambda (event) (chain console (log "left panel resized"))))
+		             :on-resizing '(lambda (event) (chain console (log "left panel resized"))))
 		(panel 'right :size 100 :resizable-p t :content "<h2>Right panel</h2>" :hidden-p t)
 		(panel 'preview :size 100 :resizable-p t :content "<h2>Preview panel</h2>" :hidden-p t)
 		(panel 'bottom :size 100 :resizable-p t :content "<h2>Bottom panel</h2>" :hidden-p t))))
@@ -77,10 +73,10 @@
 		 (item "break"  :type "break")
 		 (item "drop" :text "drop" :type "drop" :html "<p>This is drop</p>")
 		 (item "menu" :text "menu" :type "menu"
-		       :sub-items (list (sub-item "sub-item1" :text "sub-item1"
-						  :on-click '(lambda () (alert "This is sub-item1")))
-					(sub-item "sub-item2" :text "sub-item2"
-						  :on-click '(lambda (event) (chain console (log event)))))))))
+		              :sub-items (list (sub-item "sub-item1" :text "sub-item1"
+						                     :on-click '(lambda () (alert "This is sub-item1")))
+					       (sub-item "sub-item2" :text "sub-item2"
+						                     :on-click '(lambda (event) (chain console (log event)))))))))
 
 (defparameter form
   (form "my-form"
@@ -115,8 +111,8 @@
 	 (node "form-node"    "Form"    :icon "fa fa-pencil-square-o" :on-click (layout-load layout 'main "/form"))
 	 (node "popup-node"   "Popup"   :icon "fa fa-external-link"   :on-click (layout-load layout 'main "/popup"))
 	 (node "expandable-node" "Expandable node" :icon "fa fa-folder" :expanded-p t
-	       :nodes (list (node "sub-node1" "Sub node1")
-			    (node "sub-node2" "Sub node2"))))
+	                                           :nodes (list (node "sub-node1" "Sub node1")
+			                                        (node "sub-node2" "Sub node2"))))
    :enable-keyboard-p 'true))
 
 (defroute "/" (params)
@@ -133,24 +129,24 @@
          (define-w2ui-objects layout grid grid2 sidebar toolbar form tabs)
          ;; set sidebar to left panel of layout
          (ps
-           (setq main (lisp (layout-set layout 'left sidebar)))
-           (funcall main))))))))
+           (setq set-sidebar (lisp (layout-set layout 'left sidebar)))
+           (funcall set-sidebar))))))))
 
 (defroute "/layout-operations" (params)
   (declare (ignore params))
   (html (:h2 "Layout operations")
-	(str (render-button
-	      "Show all panel"
-	      :on-click `(progn
-			   (funcall ,(layout-show layout 'right))
-			   (funcall ,(layout-show layout 'preview))
-			   (funcall ,(layout-show layout 'bottom)))))
-	(str (render-button
-	      "Hide"
-	      :on-click `(progn
-			   (funcall ,(layout-hide layout 'right))
-			   (funcall ,(layout-hide layout 'preview))
-			   (funcall ,(layout-hide layout 'bottom)))))))
+    (str (render-button
+	  "Show all panel"
+	  :on-click `(progn
+		       (funcall ,(layout-show layout 'right))
+		       (funcall ,(layout-show layout 'preview))
+		       (funcall ,(layout-show layout 'bottom)))))
+    (str (render-button
+	  "Hide"
+	  :on-click `(progn
+		       (funcall ,(layout-hide layout 'right))
+		       (funcall ,(layout-hide layout 'preview))
+		       (funcall ,(layout-hide layout 'bottom)))))))
 
 (defroute "/tabs" (params)
   (declare (ignore params))
@@ -163,16 +159,16 @@
 (defroute "/grid" (params)
   (declare (ignore params))
   (html (:h2 "Grid sample")
-	(:div :id "my-grid" :style "width: 100%; height: 400px;")
-	(:h2 "Grid sample with header and toolbar")
-	(:div :id "my-grid2" :style "width: 100%; height: 400px;")
-	(:script (str (render-w2ui-objects grid grid2)))))
+    (:div :id "my-grid" :style "width: 100%; height: 400px;")
+    (:h2 "Grid sample with header and toolbar")
+    (:div :id "my-grid2" :style "width: 100%; height: 400px;")
+    (:script (str (render-w2ui-objects grid grid2)))))
 
 (defroute "/toolbar" (params)
   (declare (ignore params))
   (html (:h2 "Toolbar sample")
-	(:div :id "my-toolbar" :style "width: 100%;")
-	(:script (str (render-w2ui-objects toolbar)))))
+    (:div :id "my-toolbar" :style "width: 100%;")
+    (:script (str (render-w2ui-objects toolbar)))))
 
 (defroute "/form" (params)
   (declare (ignore params))
@@ -191,7 +187,7 @@
 (defroute "/popup" (params)
   (declare (ignore params))
   (html (:h2 "Popup sample")
-	(str (render-button "Display popup" :on-click (popup-open popup)))))
+    (str (render-button "Display popup" :on-click (popup-open popup)))))
 
 ;; For records of grid2
 (defroute "/grid-data" (params :method :GET)
