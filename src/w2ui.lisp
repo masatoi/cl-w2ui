@@ -3,76 +3,62 @@
   (:use :cl :cl-w2ui.utils)
   (:import-from :alexandria :flatten)
   (:import-from :parenscript :ps :chain :create :lisp)
-  (:export #:ps-expression-of-w2ui-object
-           #:define-w2ui-objects
-	   #:render-w2ui-objects
+  (:export :ps-expression-of-w2ui-object
+   :define-w2ui-objects
+	   :render-w2ui-objects
 	   ;; layout
-           #:layout
-           #:panel
-           #:panel-type
-           #:layout-set
-           #:layout-load
-           #:layout-show
-           #:layout-hide
-           #:layout-element-id
-           #:layout-panels
-           #:layout-padding
-           #:layout-resizer-size
-           #:layout-on-destroy
-           #:layout-on-refresh
-           #:layout-on-render
-           #:layout-on-resize
-           #:layout-on-resizer-click
-           ;; sidebar
-	   #:sidebar
-           #:node
+   :layout :panel :main :top :bottom :left :right :preview
+   :layout-set :layout-load :layout-show :layout-hide
+   :layout-element-id
+           :layout-panels
+   :layout-padding
+           :layout-resizer-size
+   :layout-on-destroy
+           :layout-on-refresh
+   :layout-on-render
+           :layout-on-resize
+   :layout-on-resizer-click
+   ;; sidebar
+	   :sidebar :node
 	   ;; grid
-	   #:grid
-           #:column
-           #:show
+	   :grid :column :show
 	   ;; toolbar
-           #:toolbar
-           #:item
-           #:sub-item
-           ;; form
-	   #:form
-           #:field
-           #:action
-           #:make-form-field-options
+   :toolbar :item :sub-item
+   ;; form
+	   :form :field :action :make-form-field-options
 	   ;; popup
-	   #:popup
-           #:popup-open
-           #:popup-close
+	   :popup :popup-open :popup-close
 	   ;; tabs
-           #:tabs
-           #:tab
-           #:tab-set))
+   :tabs :tab :tab-set))
+
 (in-package :w2ui)
 
-(define-class w2ui-object ()
-  (element-id :initform "" :type string))
-
-(defgeneric spec (obj)
-  (:documentation "return Parenscript's input which define obj."))
-
-;; (defun ps-expression-of-w2ui-object (obj)
-;;   "return Parenscript's input which define obj."
-;;   (etypecase obj
-;;     (layout (layout-spec obj))
-;;     (grid (grid-spec obj))
-;;     (sidebar (sidebar-spec obj))
-;;     (toolbar (toolbar-spec obj))
-;;     (form (form-spec obj))
-;;     (tabs (tabs-spec obj))))
+(defun ps-expression-of-w2ui-object (obj)
+  "return Parenscript's input which define obj."
+  (typecase obj
+    (layout (layout-spec obj))
+    (grid (grid-spec obj))
+    (sidebar (sidebar-spec obj))
+    (toolbar (toolbar-spec obj))
+    (form (form-spec obj))
+    (tabs (tabs-spec obj))
+    (t (error "obj is not cl-w2ui object."))))
 
 (defun define-w2ui-objects (&rest objs)
   "return Javascript string which define objects."
-  (ps (lisp (cons 'progn (mapcar #'spec objs)))))
+  (ps (lisp (cons 'progn (mapcar #'ps-expression-of-w2ui-object objs)))))
 
 (defun render-w2ui-objects (&rest objs)
   "return a Javascript string which render object."
   (cat (mapcar (lambda (obj)
-		 (let ((id (element-id obj)))
+		 (let ((id (typecase obj
+			     (layout (layout-element-id obj))
+			     (grid (grid-element-id obj))
+			     (sidebar (sidebar-element-id obj))
+			     (toolbar (toolbar-element-id obj))
+			     (form (form-element-id obj))
+			     (tabs (tabs-element-id obj))
+			     (t (error "obj is not cl-w2ui object.")))))
 		   (typecase obj
 		     (form (format nil "$('#~A').w2render('~A');" id id))
 		     (tabs (format nil "w2ui['~A'].render('#~A');w2ui['~A'].click('~A');" id id id
@@ -81,41 +67,8 @@
 	       objs)))
 
 ;;; Layout
-
-(deftype panel-type ()
-  '(member :main :left :right :top :bottom :preview))
-
-(deftype overflow-keyword ()
-  '(member :visible :hidden :clip :scroll :auto))
-
-(define-class panel ()
-  ;; type of the panel can be: main, left, right, top, bottom, preview
-  (type :initform :main :type panel-type)
-  (title :initform "" :type string) ; title for the panel
-  (size :initform 100 :type (or string integer)) ; width or height of the panel depending on panel type
-  (min-size :initform 20 :type alexandria:positive-integer) ; minimum size of the panel in px when it is resized
-  (max-size :type (or alexandria:positive-integer null)) ; if a number, then it defined maximum size of the panel
-  (hidden-p :type boolean)     ; indicates if panel is hidden
-  (resizable-p :type boolean)  ; indicates if panel is resizable
-  ;; overflow property of the panel, can have same values as similar CSS property
-  (overflow :initform :auto :type overflow-keyword)
-  (style :initform "" :type string) ; additional css styles for the panel
-  ;; content of the pane, can be a string or an object with .render(box) method
-  (content :initform "" :type string)
-  :width        ; width of the panel, read only
-  :height       ; height of the panel, read only
-  :tabs         ; w2tabs object for the panel
-  :toolbar      ; w2toolbar object for the panel
-  ;; Events
-  :on-refresh   ; refresh event for the panel
-  :on-resizing  ; resizing evnet for the panel
-  :on-show      ; show event for the panel
-  :on-hide      ; hide event for the panel
-  )
-
-
 (defstruct panel
-  :type         ; type of the panel can be: main, left, right, top, bottom, preview
+  :type         ; type of the panel can be: left, right, top, bottom, preview
   :title        ; title for the panel
   (:size nil :type (or null string integer)) ; width or height of the panel depending on panel type
   :min-size     ; minimum size of the panel in px when it is resized
@@ -140,14 +93,15 @@
 		        overflow style content width height tabs toolbar
 		        on-resizing on-resizer-click on-show on-hide
 		        on-refresh on-destroy on-render on-resize)
-  (check-type type panel-type)
+  (assert (member type '(main top bottom left right preview)))
   (make-panel :type type :title title
 	      :size (typecase size (integer (format nil "~Apx" size)) (t size))
 	      :min-size min-size :max-size max-size
 	      :hidden-p hidden-p :resizable-p resizable-p
 	      :overflow overflow :style style :content content
 	      :width width :height height :tabs tabs :toolbar toolbar
-	      :on-refresh on-refresh :on-resizing on-resizing :on-show on-show :on-hide on-hide))
+	      :on-refresh on-refresh :on-resizing on-resizing :on-show on-show :on-hide on-hide
+	      ))
 
 (defun panel-spec (panel)
   `(create ,@(if (panel-type panel) `(type ,(string-downcase (symbol-name (panel-type panel)))))
@@ -191,7 +145,6 @@
 	       :on-resize on-resize :on-resizer-click on-resizer-click))
 
 (defun layout-spec (layout)
-  (check-type layout layout)
   `((chain ($ ,(cat "#" (layout-element-id layout))) w2layout)
     (create name   ,(layout-element-id layout)
 	    panels ,(cons 'list (mapcar #'panel-spec (layout-panels layout)))
@@ -207,8 +160,6 @@
 ;; layout utilities
 
 (defun layout-set (layout panel-type w2ui-obj-or-string)
-  (check-type layout layout)
-  (check-type panel-type panel-type)
   `(lambda ()
      ((chain (aref w2ui ,(layout-element-id layout)) content)
       ,(string-downcase (symbol-name panel-type))
@@ -226,9 +177,6 @@
 ;; post-data/get-data is alist, which map key to value.
 ;; data-type: The type of data expected from the server.
 (defun layout-post-set-content (url post-data layout panel-type &key (data-type "html"))
-  (check-type url string)
-  (check-type layout layout)
-  (check-type panel-type panel-type)
   `(lambda ()
      ((chain $ post) ,url ,(if post-data (cons 'create (flatten post-data)))
       (lambda (data) ; callback
@@ -239,8 +187,6 @@
       )))
 
 (defun layout-get-set-content (url get-data layout panel-type)
-  (check-type layout layout)
-  (check-type panel-type panel-type)
   `(lambda ()
      ((chain $ get) ,url ,(if get-data (cons 'create (flatten get-data)))
       (lambda (data) ; callback
@@ -250,24 +196,19 @@
       )))
 
 (defun layout-load (layout panel-type path)
-  (check-type layout layout)
-  (check-type panel-type panel-type)
-  (check-type path string)
   `(lambda ()
      ((chain (aref w2ui ,(layout-element-id layout)) load)
       ,(string-downcase (symbol-name panel-type)) ,path)))
 
-(defun layout-show (layout panel-type &key immediate-p)
+(defun layout-show (layout panel-type)
   `(lambda ()
      ((chain (aref w2ui ,(layout-element-id layout)) show)
-      ,(string-downcase (symbol-name panel-type))
-      ,@(and immediate-p '(t)))))
+      ,(string-downcase (symbol-name panel-type)))))
 
-(defun layout-hide (layout panel-type &key immediate-p)
+(defun layout-hide (layout panel-type)
   `(lambda ()
      ((chain (aref w2ui ,(layout-element-id layout)) hide)
-      ,(string-downcase (symbol-name panel-type))
-      ,@(and immediate-p '(t)))))
+      ,(string-downcase (symbol-name panel-type)))))
 
 ;;; Sidebar
 
