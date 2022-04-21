@@ -1,39 +1,35 @@
-;;; -*- Coding:utf-8; Mode:Lisp; -*-
-
-(in-package :cl-user)
-
 (defpackage :cl-w2ui.w2ui
   (:nicknames :w2ui)
   (:use :cl :cl-w2ui.utils)
   (:import-from :alexandria :flatten)
   (:import-from :parenscript :ps :chain :create :lisp)
   (:export :ps-expression-of-w2ui-object
-	   :define-w2ui-objects
+   :define-w2ui-objects
 	   :render-w2ui-objects
 	   ;; layout
-	   :layout :panel :main :top :bottom :left :right :preview
-	   :layout-set :layout-load :layout-show :layout-hide
-           :layout-element-id
+   :layout :panel :main :top :bottom :left :right :preview
+   :layout-set :layout-load :layout-show :layout-hide
+   :layout-element-id
            :layout-panels
-           :layout-padding
+   :layout-padding
            :layout-resizer-size
-           :layout-on-destroy
+   :layout-on-destroy
            :layout-on-refresh
-           :layout-on-render
+   :layout-on-render
            :layout-on-resize
-           :layout-on-resizer-click
-	   ;; sidebar
+   :layout-on-resizer-click
+   ;; sidebar
 	   :sidebar :node
 	   ;; grid
 	   :grid :column :show
 	   ;; toolbar
-	   :toolbar :item :sub-item
-	   ;; form
+   :toolbar :item :sub-item
+   ;; form
 	   :form :field :action :make-form-field-options
 	   ;; popup
 	   :popup :popup-open :popup-close
 	   ;; tabs
-	   :tabs :tab :tab-set))
+   :tabs :tab :tab-set))
 
 (in-package :w2ui)
 
@@ -248,8 +244,8 @@
   )
 
 (defun node (id text &key count img icon nodes style route
-		       selected-p expanded-p hidden-p disabled-p group-p plus-p
-		       on-click on-dbl-click on-context-menu on-open on-close)
+		          selected-p expanded-p hidden-p disabled-p group-p plus-p
+		          on-click on-dbl-click on-context-menu on-open on-close)
   (make-node :id id :text text :count count :img img :icon icon
 	     :nodes nodes :style style :route route
 	     :selected-p selected-p :expanded-p expanded-p :hidden-p hidden-p
@@ -299,8 +295,8 @@
   )
 
 (defun sidebar (element-id nodes &key enable-keyboard-p menu
-				   on-click on-collapse on-context-menu on-dbl-click on-expand on-keydown
-				   on-menu-click on-destroy on-refresh on-render on-resize)
+				      on-click on-collapse on-context-menu on-dbl-click on-expand on-keydown
+				      on-menu-click on-destroy on-refresh on-render on-resize)
   (make-sidebar :element-id element-id :nodes nodes :enable-keyboard-p enable-keyboard-p :menu menu
 		:on-click on-click :on-collapse on-collapse :on-context-menu on-context-menu :on-dbl-click on-dbl-click
 		:on-expand on-expand :on-keydown on-keydown :on-menu-click on-menu-click :on-destroy on-destroy :on-refresh on-refresh
@@ -351,8 +347,8 @@
 
 (defun column (field caption
 	       &key size min max grid-min-width size-corrected size-calculated
-		 hidden-p sortable-p searchable-p (resizable-p t) (hideable-p t)
-		 attr style render title editable)
+		    hidden-p sortable-p searchable-p (resizable-p t) (hideable-p t)
+		    attr style render title editable)
   (make-column :field field :caption caption
 	       :size (typecase size (integer (format nil "~Apx" size)) (t size))
 	       :min min :max max
@@ -404,9 +400,9 @@
   )
 
 (defun show (&key header-p toolbar-p footer-p (column-headers-p t) line-numbers-p expand-column-p
-	       select-column-p (empty-records-p t) (toolbar-reload-p t) (toolbar-columns-p t) (toolbar-search-p t)
-	       (toolbar-add-p t) (toolbar-edit-p t) (toolbar-delete-p t) (toolbar-save-p t) (selection-border-p t)
-	       (record-titles-p t) (skip-records-p t))
+	          select-column-p (empty-records-p t) (toolbar-reload-p t) (toolbar-columns-p t) (toolbar-search-p t)
+	          (toolbar-add-p t) (toolbar-edit-p t) (toolbar-delete-p t) (toolbar-save-p t) (selection-border-p t)
+	          (record-titles-p t) (skip-records-p t))
   (make-show :header-p header-p :toolbar-p toolbar-p :footer-p footer-p
 	     :column-headers-p column-headers-p :line-numbers-p line-numbers-p
 	     :expand-column-p expand-column-p :select-column-p select-column-p
@@ -514,7 +510,7 @@
 ;; total ; Total number of records.
 
 (defun grid (element-id columns &key header url method searches sort-data records enable-keyboard-p multi-search multi-select multi-sort
-                                  show on-click on-dbl-click on-select on-unselect on-expand on-add on-delete)
+                                     show on-click on-dbl-click on-select on-unselect on-expand on-add on-delete)
   (make-grid :element-id element-id
 	     :columns columns :header header :url url :method method
 	     :searches searches :sort-data sort-data :records records :enable-keyboard-p enable-keyboard-p
@@ -639,35 +635,35 @@
     (flatten
      (mapcar (lambda (item)
 	       (if (toolbar-item-sub-items item)
-		 (mapcar (lambda (sub-item)
-			   (if (toolbar-sub-item-on-click sub-item)
-			     (cat (toolbar-item-id item) ":" (toolbar-sub-item-id sub-item))))
-			 (toolbar-item-sub-items item))))
+		   (mapcar (lambda (sub-item)
+			     (if (toolbar-sub-item-on-click sub-item)
+			         (cat (toolbar-item-id item) ":" (toolbar-sub-item-id sub-item))))
+			   (toolbar-item-sub-items item))))
 	     items-have-sub-items))))
 
 (defun make-event-listener-from-toolbar-sub-items (toolbar)
   (let ((items-have-sub-items (remove-if-not (lambda (item) (toolbar-item-sub-items item))
 					     (toolbar-items toolbar))))
     (if items-have-sub-items
-      (let ((on-click-lambda-forms
-	     (mapcar #'toolbar-sub-item-on-click
-		     (remove-if-not (lambda (sub-item)
-				      (toolbar-sub-item-on-click sub-item))
-				    (apply #'append (mapcar #'toolbar-item-sub-items
-							    items-have-sub-items))))))
-	(let* ((funcall-lambda-form-list
-		(mapcar (lambda (lambda-form)
-			  (cond ((null (cadr lambda-form)) 
-				 `(funcall ,lambda-form))
-				((= (length (cadr lambda-form)) 1)
-				 `(funcall ,lambda-form event))))
-			on-click-lambda-forms))
-	       (element-id-list (element-id-list-of-sub-items-which-have-on-click toolbar))
-	       (cond-clause-list
-		(mapcar (lambda (funcall-lambda-form element-id)
-			  `((= (chain event target) ,element-id)  ,funcall-lambda-form))
-			funcall-lambda-form-list element-id-list)))
-	  `(lambda (event) (cond ,@cond-clause-list)))))))
+        (let ((on-click-lambda-forms
+	        (mapcar #'toolbar-sub-item-on-click
+		        (remove-if-not (lambda (sub-item)
+				         (toolbar-sub-item-on-click sub-item))
+				       (apply #'append (mapcar #'toolbar-item-sub-items
+							       items-have-sub-items))))))
+	  (let* ((funcall-lambda-form-list
+		   (mapcar (lambda (lambda-form)
+			     (cond ((null (cadr lambda-form))
+				    `(funcall ,lambda-form))
+				   ((= (length (cadr lambda-form)) 1)
+				    `(funcall ,lambda-form event))))
+			   on-click-lambda-forms))
+	         (element-id-list (element-id-list-of-sub-items-which-have-on-click toolbar))
+	         (cond-clause-list
+		   (mapcar (lambda (funcall-lambda-form element-id)
+			     `((= (chain event target) ,element-id)  ,funcall-lambda-form))
+			   funcall-lambda-form-list element-id-list)))
+	    `(lambda (event) (cond ,@cond-clause-list)))))))
 
 (defun toolbar-spec (toolbar)
   `(progn
@@ -677,8 +673,8 @@
 	      items ,(cons 'list (mapcar #'toolbar-item-spec (toolbar-items toolbar)))))
      ;; define event listener for sub-items
      ,@(if (make-event-listener-from-toolbar-sub-items toolbar)
-	 `(((chain (aref w2ui ,(toolbar-element-id toolbar)) on) "click"
-	    ,(make-event-listener-from-toolbar-sub-items toolbar))))))
+	   `(((chain (aref w2ui ,(toolbar-element-id toolbar)) on) "click"
+	      ,(make-event-listener-from-toolbar-sub-items toolbar))))))
 
 ;;; Form
 
