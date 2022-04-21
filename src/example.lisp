@@ -146,7 +146,13 @@
 	  :on-click `(progn
 		       (funcall ,(layout-hide layout 'right))
 		       (funcall ,(layout-hide layout 'preview))
-		       (funcall ,(layout-hide layout 'bottom)))))))
+		       (funcall ,(layout-hide layout 'bottom)))))
+    (str (render-button
+	  "Hide(immediate)"
+	  :on-click `(progn
+		       (funcall ,(layout-hide layout 'right :immediate-p t))
+		       (funcall ,(layout-hide layout 'preview :immediate-p t))
+		       (funcall ,(layout-hide layout 'bottom :immediate-p t)))))))
 
 (defroute "/tabs" (params)
   (declare (ignore params))

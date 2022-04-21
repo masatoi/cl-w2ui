@@ -5,14 +5,68 @@
 (defpackage cl-w2ui.utils
   (:nicknames :utils)
   (:use :cl :cl-who)
-  (:export :cat
-	   :html
-	   :with-head
-	   :render-button))
-	   
+  (:import-from :alexandria)
+  (:export #:define-class
+           #:cat
+	   #:html
+	   #:with-head
+	   #:render-button))
+
 (in-package :cl-w2ui.utils)
 
 ;;; Utilities
+
+(defmacro define-class (class-name superclass-list &body body)
+  "Simplified definition of classes which similar to definition of structure.
+ [Example]
+  (define-class agent (superclass1 superclass2)
+    currency
+    position-list
+    (position-upper-bound :initform 1 :type single-float)
+    log
+    money-management-rule)
+=> #<STANDARD-CLASS AGENT>"
+  (alexandria:with-gensyms (class initargs)
+    `(prog1
+         (defclass ,class-name (,@superclass-list)
+           ,(mapcar (lambda (slot)
+                      (let* ((slot-symbol (if (listp slot) (car slot) slot))
+                             (slot-name (symbol-name slot-symbol))
+                             (slot-initval (if (listp slot)
+                                               (getf (cdr slot) :initform)
+                                               nil))
+                             (slot-type (if (listp slot)
+                                            (getf (cdr slot) :type)
+                                            t)))
+                        (list slot-symbol
+                              :accessor (intern slot-name)
+                              :initarg (intern slot-name :keyword)
+                              :initform slot-initval
+                              :type slot-type)))
+             body))
+
+       (defmethod initialize-instance :before ((,class ,class-name)
+                                               &rest ,initargs
+                                               &key ,@(mapcar (lambda (slot)
+                                                                (etypecase slot
+                                                                  (list (if (getf (cdr slot) :initform)
+                                                                            (list (car slot)
+                                                                                  (getf (cdr slot) :initform))
+                                                                            (car slot)))
+                                                                  (symbol slot)))
+                                                              body)
+                                               &allow-other-keys)
+         (declare (ignorable ,initargs
+                             ,@(mapcar (lambda (slot)
+                                         (etypecase slot
+                                           (list (car slot))
+                                           (symbol slot)))
+                                       body)))
+         ,@(remove nil
+                   (mapcar (lambda (slot)
+                             (when (and (listp slot) (getf (cdr slot) :type))
+                               `(check-type ,(car slot) ,(getf (cdr slot) :type))))
+                           body))))))
 
 ;; concatenate strings
 (defun cat (&rest strings)
