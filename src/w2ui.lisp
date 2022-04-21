@@ -94,9 +94,9 @@
   )
 
 (defun panel (type &key title size min-size max-size hidden-p resizable-p
-		     overflow style content width height tabs toolbar
-		     on-resizing on-resizer-click on-show on-hide
-		     on-refresh on-destroy on-render on-resize)
+		        overflow style content width height tabs toolbar
+		        on-resizing on-resizer-click on-show on-hide
+		        on-refresh on-destroy on-render on-resize)
   (assert (member type '(main top bottom left right preview)))
   (make-panel :type type :title title
 	      :size (typecase size (integer (format nil "~Apx" size)) (t size))
